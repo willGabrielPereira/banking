@@ -5,6 +5,7 @@ use App\Helpers\Withdrawal\WithdrawalSaveHighValue;
 use App\Helpers\Withdrawal\WithdrawalService;
 use App\Loggers\DatabaseLogger;
 use App\Loggers\FileLogger;
+use App\Models\Inventory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -12,23 +13,24 @@ require __DIR__ . '/../vendor/autoload.php';
 $message = '';
 $messageType = ''; // 'success' or 'error'
 $composition = null;
+$suggestions = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = filter_input(INPUT_POST, 'amount', FILTER_VALIDATE_FLOAT);
     $strategyType = $_POST['strategy'] ?? 'fewest_bills';
 
     if ($amount > 0) {
+        $withdrawalService = new WithdrawalService([
+            // new DatabaseLogger(),
+            new FileLogger()
+        ]);
+
+        // Seleciona a estratégia com base na escolha do usuário
+        $strategy = $strategyType === 'save_high_value'
+            ? new WithdrawalSaveHighValue()
+            : new WithdrawalFewest();
+
         try {
-            $withdrawalService = new WithdrawalService([
-                // new DatabaseLogger(),
-                new FileLogger()
-            ]);
-
-            // Seleciona a estratégia com base na escolha do usuário
-            $strategy = $strategyType === 'save_high_value'
-                ? new WithdrawalSaveHighValue()
-                : new WithdrawalFewest();
-
             $composition = $withdrawalService->execute($amount, $strategy);
 
             $message = "Saque de R$ " . number_format($amount, 2, ',', '.') . " realizado com sucesso!";
@@ -36,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (\Exception $e) {
             $message = "Erro: " . $e->getMessage();
             $messageType = 'error';
+            $inventory = Inventory::getAll();
+            $suggestions = $strategy->getAlternativeAmounts($amount, $inventory);
         }
     } else {
         $message = "Erro: O valor do saque deve ser um número positivo.";
@@ -68,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .composition-box h3 { margin-top: 0; }
         .composition-box ul { list-style-type: none; padding: 0; }
         .composition-box li { background-color: #e9ecef; margin-bottom: 5px; padding: 8px; border-radius: 4px; }
+        .suggestions-box { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background-color: #f0f8ff; }
     </style>
 </head>
 
@@ -79,6 +84,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($message): ?>
             <div class="message <?= htmlspecialchars($messageType) ?>">
                 <?= htmlspecialchars($message) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($suggestions)): ?>
+            <div class="suggestions-box">
+                <h3>Valores alternativos para saque:</h3>
+                <ul>
+                    <?php foreach ($suggestions as $suggestion): ?>
+                        <li>R$ <?= htmlspecialchars(number_format($suggestion, 2, ',', '.')) ?></li>
+                    <?php endforeach; ?>
+                </ul>
             </div>
         <?php endif; ?>
 

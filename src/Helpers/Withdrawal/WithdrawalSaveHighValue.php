@@ -34,4 +34,25 @@ class WithdrawalSaveHighValue implements WithdrawalStrategyInterface
 
         return $remainingAmount == 0 ? $composition : null;
     }
+
+    public function getAlternativeAmounts(float $value, array $inventory): array
+    {
+        $suggestions = [];
+        $potentialSuggestions = [];
+
+        foreach (array_reverse($inventory) as $item) {
+            $amount = $value / $item->value;
+            if ($amount > 1) {
+                $potentialSuggestions[] = $item->value * floor($amount);
+            }
+        }
+
+        foreach (array_unique($potentialSuggestions) as $suggestion) {
+            if ($this->compose($suggestion, $inventory) !== null) {
+                $suggestions[] = $suggestion;
+            }
+        }
+
+        return array_values(array_unique($suggestions));
+    }
 }
