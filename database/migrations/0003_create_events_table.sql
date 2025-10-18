@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    event_date DATETIME NOT NULL,
+    message TEXT NOT NULL
+);

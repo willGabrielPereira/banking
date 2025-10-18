@@ -3,6 +3,8 @@
 use App\Helpers\Withdrawal\WithdrawalFewest;
 use App\Helpers\Withdrawal\WithdrawalSaveHighValue;
 use App\Helpers\Withdrawal\WithdrawalService;
+use App\Loggers\DatabaseLogger;
+use App\Loggers\FileLogger;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -17,7 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($amount > 0) {
         try {
-            $withdrawalService = new WithdrawalService();
+            $withdrawalService = new WithdrawalService([
+                // new DatabaseLogger(),
+                new FileLogger()
+            ]);
 
             // Seleciona a estratégia com base na escolha do usuário
             $strategy = $strategyType === 'save_high_value'

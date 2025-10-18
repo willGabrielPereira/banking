@@ -7,6 +7,16 @@ use App\Models\Inventory;
 
 class WithdrawalService
 {
+    private $notifiers = [];
+
+    public function __construct(array $notifiers = [])
+    {
+        foreach ($notifiers as $notifier) {
+            if ($notifier instanceof \App\Interfaces\NotificationInterface) {
+                $this->notifiers[] = $notifier;
+            }
+        }
+    }
 
     /**
      * Executa a operação de saque usando uma estratégia específica.
@@ -31,6 +41,10 @@ class WithdrawalService
             }
         } catch (\Exception $e) {
             throw new \Exception("Ocorreu um erro ao atualizar o inventário durante o saque. Operação cancelada.");
+        }
+
+        foreach ($this->notifiers as $notifier) {
+            $notifier->notify("Saque de R$ " . number_format($amount, 2, ',', '.') . " realizado com sucesso.");
         }
 
         return $composition;
