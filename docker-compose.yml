@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: banking-app
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mariadb:10.11
+    container_name: banking-db
+    restart: unless-stopped
+    tty: true
+    environment:
+      MYSQL_DATABASE: banking
+      MYSQL_USER: bank
+      MYSQL_PASSWORD: bank123
+      MYSQL_ROOT_PASSWORD: banking123
+    volumes:
+      - ./db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
