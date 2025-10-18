@@ -7,14 +7,21 @@ use App\Helpers\DB;
 class Inventory extends DB
 {
     private ?int $id = null;
-    private ?int $amount = null;
-    private ?float $value = null;
+    public ?int $amount = null;
+    public ?float $value = null;
+
+    private const VALID_VALUES = [200.00, 100.00, 50.00, 20.00, 10.00, 5.00, 2.00, 1.00];
+
 
     public function __construct(?int $amount = null, ?float $value = null, ?int $id = null)
     {
         $this->id = $id;
         $this->amount = $amount;
         $this->value = $value;
+
+        if ($value && !self::isValidValue($value)) {
+            throw new \Exception("O valor R$ " . number_format($value, 2, ',', '.') . " não é uma cédula ou moeda válida.");
+        }
 
         parent::__construct();
     }
@@ -107,7 +114,7 @@ class Inventory extends DB
     public static function getAll() {
         $inventory = new Inventory();
         $conn = $inventory->getConnection();
-        $stmt = $conn->query("SELECT * FROM inventory");
+        $stmt = $conn->query("SELECT * FROM inventory order by value desc");
 
         $results = $stmt->fetchAll();
 
@@ -139,6 +146,17 @@ class Inventory extends DB
         }
 
         return null;
+    }
+
+    /**
+     * Verifica se o valor monetário corresponde a uma cédula ou moeda válida.
+     *
+     * @param float $value
+     * @return boolean
+     */
+    private static function isValidValue(float $value): bool
+    {
+        return in_array($value, self::VALID_VALUES, true);
     }
 
     public function __toString(): string
