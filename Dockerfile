@@ -32,6 +32,8 @@ WORKDIR /var/www/html
 RUN composer install --prefer-dist --no-autoloader --no-scripts
 RUN composer dump-autoload
 
+RUN php migrate.php
+
 # Expõe a porta 80
 EXPOSE 80
 
