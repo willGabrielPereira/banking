@@ -3,10 +3,15 @@ FROM php:8.2-fpm-alpine
 # Instala o Nginx e outras dependências
 RUN apk update && apk add --no-cache \
     nginx \
-    supervisor
+    supervisor \
+    curl \ 
+    git
 
 # Instala as extensões do PHP
 RUN docker-php-ext-install pdo pdo_mysql
+
+# Instala o Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Copia a configuração do PHP-FPM
 COPY ./docker/php-fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
@@ -23,6 +28,9 @@ COPY . /var/www/html
 
 # Define o diretório de trabalho
 WORKDIR /var/www/html
+
+RUN composer install --prefer-dist --no-autoloader --no-scripts
+RUN composer dump-autoload
 
 # Expõe a porta 80
 EXPOSE 80
