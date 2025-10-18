@@ -52,6 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Sempre busca o inventário atual para exibição
 $items = Inventory::getAll();
 
+$totalValue = 0;
+foreach ($items as $item) {
+    $totalValue += $item->value * $item->amount;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -118,6 +123,7 @@ $items = Inventory::getAll();
                 <?php endif; ?>
             </tbody>
         </table>
+        <p><strong>Valor Total em Caixa:</strong> R$ <?= htmlspecialchars(number_format($totalValue, 2, ',', '.')) ?></p>
 
         <div class="actions">
             <div class="form-card">

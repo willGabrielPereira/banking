@@ -51,10 +51,11 @@ use App\Helpers\DB;
 
 <body>
     <div class="container">
-        
+        <nav>
+            <a href="pages/inventory.php">Inventário</a> |
+            <a href="pages/withdraw.php">Saque</a>
+        </nav>
 
-
-        <nav><a href="pages/inventory.php">Inventário</a></nav>
 
 
 
@@ -65,7 +66,6 @@ use App\Helpers\DB;
         <div class="db-status">
             <?php
             try {
-                // Reutilizando a classe DB para a conexão
                 $db = new DB();
                 $pdo = $db->getConnection();
                 echo '<p class="success">Conexão com o banco de dados MariaDB foi bem-sucedida!</p>';
