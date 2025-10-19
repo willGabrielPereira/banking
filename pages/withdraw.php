@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
     <div class="container">
-        <nav><a href="../index.php">‹ Voltar para Home</a></nav>
+        <nav><a href="dashboard.php">‹ Voltar para Home</a></nav>
         <h1>Simular Saque</h1>
 
         <?php if ($message): ?>

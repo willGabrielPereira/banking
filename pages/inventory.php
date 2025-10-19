@@ -1,7 +1,23 @@
 <?php
+session_start();
+
 require __DIR__ . '/../vendor/autoload.php';
 
+use App\Models\Users;
 use App\Models\Inventory;
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../index.php');
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+$currentUser = Users::find($userId);
+
+if (!$currentUser || !$currentUser->is_superuser) {
+    header('Location: dashboard.php');
+    exit;
+}
 
 $message = '';
 $messageType = ''; // 'success' or 'error'
@@ -91,7 +107,7 @@ foreach ($items as $item) {
 
 <body>
     <div class="container">
-        <nav><a href="../index.php">‹ Voltar para Home</a></nav>
+        <nav><a href="dashboard.php">‹ Voltar para Home</a></nav>
         <h1>Gerenciar Inventário</h1>
 
         <?php if ($message): ?>
