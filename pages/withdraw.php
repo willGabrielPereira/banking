@@ -1,14 +1,28 @@
 <?php
+session_start();
 
 use App\Helpers\Withdrawal\WithdrawalFewest;
 use App\Helpers\Withdrawal\WithdrawalSaveHighValue;
 use App\Helpers\Withdrawal\WithdrawalService;
-use App\Loggers\DatabaseLogger;
 use App\Loggers\FileLogger;
 use App\Models\Inventory;
+use App\Models\Users;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../index.php');
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+$user = Users::find($userId);
+
+if (!$user) {
+    session_destroy();
+    header('Location: ../index.php');
+    exit;
+}
 
 $message = '';
 $messageType = ''; // 'success' or 'error'
@@ -31,10 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : new WithdrawalFewest();
 
         try {
-            $composition = $withdrawalService->execute($amount, $strategy);
+            $composition = $withdrawalService->execute($amount, $strategy, $user);
 
             $message = "Saque de R$ " . number_format($amount, 2, ',', '.') . " realizado com sucesso!";
             $messageType = 'success';
+            
+            $user = Users::find($userId);
         } catch (\Exception $e) {
             $message = "Erro: " . $e->getMessage();
             $messageType = 'error';
@@ -60,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         h1 { color: #007bff; }
         nav { margin-bottom: 20px; }
         nav a { text-decoration: none; color: #007bff; font-weight: bold; }
+        .balance { font-size: 18px; margin-bottom: 20px; color: #555; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; }
         .form-group input, .form-group select { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
@@ -80,6 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container">
         <nav><a href="dashboard.php">‹ Voltar para Home</a></nav>
         <h1>Simular Saque</h1>
+
+        <div class="balance">
+            <strong>Seu Saldo:</strong> R$ <?= htmlspecialchars(number_format($user->balance, 2, ',', '.')) ?>
+        </div>
 
         <?php if ($message): ?>
             <div class="message <?= htmlspecialchars($messageType) ?>">
